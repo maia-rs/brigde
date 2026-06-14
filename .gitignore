@@ -1,0 +1,23 @@
+# Variáveis de ambiente
+.env
+
+# Banco de dados
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtualenv
+venv/
+.venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+
+# Kiro
+.kiro/
