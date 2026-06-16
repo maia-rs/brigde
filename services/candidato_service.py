@@ -2,6 +2,9 @@ from models.banco import db
 from models.user import User
 from models.candidato import Candidato
 from sqlalchemy.orm import joinedload
+from datetime import date
+
+
 
 
 
@@ -100,6 +103,33 @@ class CandidatoService:
         return candidatos
     
     
+
+    @staticmethod
+    def get_candidatos_by_idade(idade):
+        """ Busca todos candidatos por idade calculando o intervalo de nascimento. """
+        hoje = date.today()
+        
+        # Menor data possível de nascimento para quem tem essa idade (ex: fez aniversário hoje)
+        data_inicio = hoje.replace(year=hoje.year - idade - 1) + datetime.timedelta(days=1)
+        
+        # Maior data possível de nascimento para quem tem essa idade
+        data_fim = hoje.replace(year=hoje.year - idade)
+        
+        # O banco de dados filtra rapidamente usando o índice da coluna de data
+        candidatos = db.session.query(Candidato).filter(
+            Candidato.data_nascimento.between(data_inicio, data_fim)
+        ).all()
+        
+        return candidatos
+
+
+    @staticmethod
+    def get_candidatos_by_data_nascimento(data_nascimento):
+        """ Busca todos candidatos por data de nascimento. """
+        candidatos = db.session.query(Candidato).filter_by(data_nascimento=data_nascimento).all()
+        return candidatos
+   
+   
     # Atualização
     @staticmethod
     def update_candidato(candidato_id, data):

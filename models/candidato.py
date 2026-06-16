@@ -1,8 +1,10 @@
 from models.banco import db
+from datetime import date
 
 
 
 # Classe candidato
+
 
 class Candidato(db.Model):
     """ 
@@ -29,4 +31,11 @@ data_nascimento -> recebe uma data
     palavra_chave = db.Column(db.String(100), nullable=False)
     profissao = db.Column(db.String(100), nullable=False)
     data_nascimento = db.Column(db.Date, nullable=False)
-    
+
+    @property
+    def idade(self):
+        """ Calcula a idade do candidato com base na data de nascimento. """
+        hoje = date.today()
+        return hoje.year - self.data_nascimento.year - (
+            (hoje.month, hoje.day) < (self.data_nascimento.month, self.data_nascimento.day)
+        )

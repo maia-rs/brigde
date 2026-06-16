@@ -46,6 +46,7 @@ class RecrutadorService:
         if not recrutador:
             raise ValueError("Recrutador não encontrado no banco de dados.")
         return recrutador
+    
     @staticmethod
     def get_recrutadores():
         """ Busca todos os recrutadores, trazendo todas as suas infos """
@@ -67,7 +68,7 @@ class RecrutadorService:
         return recrutador
     
     @staticmethod
-    def get_candidatos_by_empresa(empresa):
+    def get_recrutadores_by_empresa(empresa):
         """ Busca todos recrutadores por empresa. """
         recrutadores = db.session.query(Recrutador).filter_by(empresa=empresa).all()
         return recrutadores

@@ -1,5 +1,5 @@
 from models.banco import db
-from models.user import User
+from models.user import User, Status
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_ # Importante para a lógica de "OU" no login
 from sqlalchemy.orm import joinedload
@@ -14,8 +14,8 @@ class UsuarioService:
         # 1º Verifica se e-mail já existe
         if db.session.query(User).filter_by(email=data['email']).first():
             raise ValueError("Este e-mail já está cadastrado no sistema.")
-            
-        # 2° Criptografa a senha        
+                         
+        #2° Criptografa a senha        
         hashed_password = generate_password_hash(data['senha'])
 
         # 3° Cria o usuário
@@ -44,11 +44,17 @@ class UsuarioService:
         return usuarios
     
     @staticmethod
-    def get_usuarios_by_status(status):
-        """ Busca todos os usuários por status. """
-        usuarios = db.session.query(User).filter_by(status=status).all()
+    def listar_usuarios_ativos():
+        """ Busca todos os usuários ativos. """
+        usuarios = db.session.query(User).filter_by(status=Status.ATIVO).all()
         return usuarios
     
+    @staticmethod
+    def listar_usuarios_inativos():
+        """ Busca todos os usuários inativos. """
+        usuarios = db.session.query(User).filter_by(status=Status.INATIVO).all()
+        return usuarios
+       
 
     # Atualização
     @staticmethod
@@ -61,16 +67,48 @@ class UsuarioService:
         if 'nome' in data:
             usuario.nome = data['nome']
         if 'email' in data:
-            if db.session.query(User).filter_by(email=data['email']).first():
+            if 'email' in data and data['email'] != usuario.email:
+                # Verifica se o novo e-mail já pertence a OUTRO usuário
+                email_existe = db.session.query(User.id).filter(
+                User.email == data['email'], 
+                User.id != usuario.id
+                ).first() is not None
+
+            if email_existe:
                 raise ValueError("Este e-mail já está cadastrado no sistema.")
-            usuario.email = data['email']
+        
+             usuario.email = data['email']
         if 'senha' in data:
             usuario.senha = generate_password_hash(data['senha'])
-        if 'status' in data:
-            usuario.status = data['status']
+       
             
         db.session.commit()
         return usuario
+    
+    @staticmethod
+    def desativar_usuario(usuario_id):
+        """ Desativa um usuário. """
+        usuario = db.session.get(User, usuario_id)
+        if not usuario:
+            raise ValueError("Usuário não encontrado no banco de dados.")
+        if usuario.status == Status.INATIVO:
+            raise ValueError("Usuário já está inativo.")
+        usuario.status = Status.INATIVO
+        db.session.commit()
+        return usuario
+    
+    @staticmethod
+    def ativar_usuario(usuario_id):
+        """ Ativar um usuário. """
+        usuario = db.session.get(User, usuario_id)
+        if not usuario:
+            raise ValueError("Usuário não encontrado no banco de dados.")
+        if usuario.status == Status.ATIVO:
+            raise ValueError("Usuário já está ativo.")
+        usuario.status = Status.ATIVO
+        db.session.commit()
+        return usuario
+    
 
     # Login
     @staticmethod
@@ -79,10 +117,16 @@ class UsuarioService:
         usuario = db.session.query(User).filter(
             (User.email == email_or_nome) | (User.nome == email_or_nome)
         ).first()
+
+       
         
         # Se encontrou o usuário e a senha do Werkzeug bater, retorna o objeto
-        if usuario and check_password_hash(usuario.senha, senha):
-            return usuario
-            
-        # Caso contrário, levanta um erro para a rota tratar
-        raise ValueError("Usuário ou senha incorretos.")
+        if not usuario or not check_password_hash(usuario.senha, senha):
+            raise ValueError("Usuário ou senha incorretos.")
+        
+         #Verifica se usuário está ativo
+        if usuario.status != Status.ATIVO:
+            raise ValueError("Usuário inativo.")
+        
+        #Sucesso 
+        return usuario

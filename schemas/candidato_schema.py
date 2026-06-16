@@ -33,6 +33,9 @@ class GetCandidato(BaseModel):
     palavra_chave: str
     profissao: str
     data_nascimento: date
+    idade: int
+
+
 
     model_config = {"from_attributes": True}
 
