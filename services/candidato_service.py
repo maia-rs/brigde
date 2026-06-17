@@ -2,7 +2,7 @@ from models.banco import db
 from models.user import User
 from models.candidato import Candidato
 from sqlalchemy.orm import joinedload
-from datetime import date
+from datetime import date, datetime
 
 
 

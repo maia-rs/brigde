@@ -12,7 +12,7 @@ class UsuarioService:
     def create_usuario(data):
         """ Cria um novo usuário com senha criptografada. """
         # 1º Verifica se e-mail já existe
-        if db.session.query(User).filter_by(email=data['email']).first():
+        if db.session.query(User.id).filter_by(email=data['email']).first():
             raise ValueError("Este e-mail já está cadastrado no sistema.")
                          
         #2° Criptografa a senha        
@@ -77,7 +77,7 @@ class UsuarioService:
             if email_existe:
                 raise ValueError("Este e-mail já está cadastrado no sistema.")
         
-             usuario.email = data['email']
+            usuario.email = data['email']
         if 'senha' in data:
             usuario.senha = generate_password_hash(data['senha'])
        
