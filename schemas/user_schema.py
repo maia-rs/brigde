@@ -45,20 +45,20 @@ class UpdateUser(BaseModel):
 
 class Login(BaseModel):
 
-    """ Define esquema para login de usuários. Sendo possível fazer login com nome ou e-mail. """
+    """ Define esquema para login de usuários. Sendo possível fazer login com e-mail. """
 
-    nome: Optional[str] = None
-    email: Optional[str] = None
+    #nome: Optional[str] = None
+    email: str = None
     senha: str
 
 
     model_config = {"from_attributes": True}
 
     @model_validator(mode='after')
-    def verificar_nome_email(self):
+    def verificar_email(self):
 
-        """ Valida se ao menos o nome ou o e-mail foi fornecido para o login. """
+        """ Valida se o e-mail foi fornecido para o login. """
 
-        if not self.nome and not self.email:
-            raise ValueError ('Forneça o nome ou o email')
+        if not self.email:
+            raise ValueError ('Forneça o email')
         return self

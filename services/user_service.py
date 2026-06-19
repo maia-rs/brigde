@@ -34,7 +34,7 @@ class UsuarioService:
         """ Busca um usuário pelo ID. """
         usuario = db.session.get(User,usuario_id)
         if not usuario:
-            raise ValueError("Candidato não encontrado no banco de dados.")
+            raise ValueError("Usuário não encontrado no banco de dados.")
         return usuario
    
     @staticmethod
@@ -112,13 +112,11 @@ class UsuarioService:
 
     # Login
     @staticmethod
-    def verify_login(email_or_nome, senha):
-        """ Verifica as credenciais de login aceitando e-mail ou nome. """
+    def verify_login(email, senha):
+        """ Verifica as credenciais de login aceitando e-mail. """
         usuario = db.session.query(User).filter(
-            (User.email == email_or_nome) | (User.nome == email_or_nome)
-        ).first()
-
-       
+            (User.email == email) 
+        ).first()       
         
         # Se encontrou o usuário e a senha do Werkzeug bater, retorna o objeto
         if not usuario or not check_password_hash(usuario.senha, senha):
