@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from datetime import date
 from typing import Optional
+from schemas.user_schema import GetUser
 
 # Schema usuário
 
@@ -24,9 +25,7 @@ class GetCandidato(BaseModel):
     """ Define esquema para consulta de candidatos. """
 
     id: int
-    id_usuario: int
-    nome: str 
-    email: str
+    user_id: int
     cidade: str
     uf: str
     telefone: str
@@ -35,6 +34,7 @@ class GetCandidato(BaseModel):
     data_nascimento: date
     idade: int
 
+    usuario: GetUser
 
 
     model_config = {"from_attributes": True}

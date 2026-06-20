@@ -128,7 +128,7 @@ def get_user_by_id(user_id):
         return jsonify({"error": "Erro interno no servidor."}), 500
 
     
- #Listas todos os usuários do banco
+#Listas todos os usuários do banco
 @user_bp.route('/usuario', methods=['GET'])
 @jwt_required()
 def get_users():

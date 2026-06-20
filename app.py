@@ -6,9 +6,11 @@ from dotenv import load_dotenv
 from pydantic import ValidationError
 from models.banco import db
 from models.user import User
+from models.candidato import Candidato
 
 # Importa os blueprints
 from routes.user_routes import user_bp
+from routes.candidato_routes import candidato_bp
 
 load_dotenv()
 
@@ -24,6 +26,7 @@ db.init_app(app)
 
 # Registra os blueprints
 app.register_blueprint(user_bp)
+app.register_blueprint(candidato_bp)
 
 with app.app_context():
     db.create_all()

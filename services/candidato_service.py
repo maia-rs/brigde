@@ -14,25 +14,31 @@ class CandidatoService:
     # Criação de Candidato
     @staticmethod
     
-    def create_candidato(data,usuario_id):
+    def create_candidato(data,user_id):
         """ Cria um novo candidato. """
 
         #1 Verifica se o candidato já existe
-        candidato_existente = db.session.query(Candidato).filter_by(usuario_id=usuario_id).first()
+        candidato_existente = db.session.query(Candidato).filter_by(user_id=user_id).first()
 
         if candidato_existente:
             # Se encontrou, impede o cadastro disparando a exceção
             raise ValueError("Este usuário já possui um candidato cadastrado.")
         
+        data_nascimento_texto = data.get('data_nascimento')
+        try:
+            data_nascimento_objeto = datetime.strptime(data_nascimento_texto, "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            raise ValueError("Formato de data inválido. Use o padrão AAAA-MM-DD.")
+        
         #2 Se não continua
         candidato = Candidato(
-            usuario_id=usuario_id,
+            user_id=user_id,
             cidade=data['cidade'],
             uf=data['uf'],
             telefone=data['telefone'],
             palavra_chave=data['palavra_chave'],
             profissao=data['profissao'],
-            data_nascimento=data['data_nascimento']
+            data_nascimento=data_nascimento_objeto
         )
         db.session.add(candidato)
         db.session.commit()

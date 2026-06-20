@@ -95,3 +95,4 @@ class CandidaturaService:
 
         db.session.commit()
         return candidatura
+    

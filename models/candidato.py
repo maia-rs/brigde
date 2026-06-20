@@ -23,8 +23,8 @@ data_nascimento -> recebe uma data
 
     __tablename__ = 'candidato'
     id= db.Column(db.Integer, primary_key=True)
-    id_usuario = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False, unique=True)
-    usuario = db.relationship('User', backref=db.backref('candidato', uselist=False)) # usa relationship e backref para facilitar nas querys dispensa fazer consultas complexas (JOINs) manualmente
+    user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False, unique=True)
+    usuario = db.relationship('User',foreign_keys=[user_id], backref=db.backref('candidato', uselist=False)) # usa relationship e backref para facilitar nas querys dispensa fazer consultas complexas (JOINs) manualmente
     cidade = db.Column(db.String(100), nullable=False)
     uf = db.Column(db.String(2), nullable=False)
     telefone = db.Column(db.String(11), nullable=False)
