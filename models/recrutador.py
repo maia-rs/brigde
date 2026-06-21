@@ -20,7 +20,7 @@ empresa -> recebe uma string com no máximo 100 caracteres
 """
     __tablename__ = 'recrutador'
     id= db.Column(db.Integer, primary_key=True)
-    id_usuario = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False, unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False, unique=True)
     usuario = db.relationship('User', backref=db.backref('recrutador', uselist=False)) # usa relationship e backref para facilitar nas querys dispensa fazer consultas complexas (JOINs) manualmente
     empresa = db.Column(db.String(100), nullable=False)
     

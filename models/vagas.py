@@ -23,7 +23,7 @@ class Status(enum.Enum):
     """ Essa classe usa Enum para definir opções fixas no valor da coluna status da tabela vagas """
 
     ATIVO = 'ABERTA'
-    INATIVO = 'FECHA'
+    INATIVO = 'FECHADA'
 
 
 
@@ -46,7 +46,7 @@ class Vaga(db.Model):
     """
     __tablename__ = 'vagas'
     id= db.Column(db.Integer, primary_key=True)
-    id_recrutador = db.Column(db.Integer, db.ForeignKey('recrutador.id'), nullable=False)
+    recrutador_id = db.Column(db.Integer, db.ForeignKey('recrutador.id'), nullable=False)
     recrutador = db.relationship('Recrutador', backref=db.backref('vagas')) # usa relationship e backref para facilitar nas querys dispensa fazer consultas complexas (JOINs) manualmente
     titulo = db.Column(db.String(100), nullable=False)
     descricao = db.Column(db.String(1000), nullable=False)   
@@ -54,7 +54,7 @@ class Vaga(db.Model):
     uf = db.Column(db.String(2), nullable=False)
     palavra_chave = db.Column(db.String(100), nullable=False)
     modalidade = db.Column(db.Enum(Modalidade), nullable=False)
-    data_criacao = db.Column(db.DateTime, nullable=False, default=datetime.now())
+    data_criacao = db.Column(db.DateTime, nullable=False, default=datetime.now)
     status = db.Column(db.Enum(Status), nullable=False, default=Status.ATIVO)
     
     

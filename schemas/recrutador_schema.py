@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from schemas.user_schema import GetUser
 
 class CreateRecrutador(BaseModel):
 
@@ -15,10 +16,10 @@ class GetRecrutador(BaseModel):
     """ Define esquema para consulta de recrutadores. """
 
     id: int
-    id_usuario: int
-    nome: str
-    email: str
+    user_id: int
     empresa: str
+
+    usuario:GetUser
 
     model_config = {"from_attributes": True}
 

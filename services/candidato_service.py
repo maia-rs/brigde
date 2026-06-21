@@ -2,7 +2,7 @@ from models.banco import db
 from models.user import User
 from models.candidato import Candidato
 from sqlalchemy.orm import joinedload
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 
 
@@ -116,7 +116,7 @@ class CandidatoService:
         hoje = date.today()
         
         # Menor data possível de nascimento para quem tem essa idade (ex: fez aniversário hoje)
-        data_inicio = hoje.replace(year=hoje.year - idade - 1) + datetime.timedelta(days=1)
+        data_inicio = hoje.replace(year=hoje.year - idade - 1) + timedelta(days=1)
         
         # Maior data possível de nascimento para quem tem essa idade
         data_fim = hoje.replace(year=hoje.year - idade)

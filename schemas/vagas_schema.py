@@ -1,7 +1,8 @@
 from models.vagas import Status, Modalidade
 from pydantic import BaseModel, Field
-from datetime import date
+from datetime import datetime
 from typing import Optional
+from schemas.recrutador_schema import GetRecrutador
 
 class CreateVaga(BaseModel):
     """ Define a criação de vagas usando Pydantic. """
@@ -21,18 +22,19 @@ class GetVaga(BaseModel):
     """ Define esquema para consulta de vagas. """
 
     id: int
-    id_recrutador: int
-    nome_recrutador: str # Vem do recrutador
-    empresa: str # Vem do recrutador
+    recrutador_id: int
+    #nome_recrutador: str # Vem do recrutador
+    #empresa: str # Vem do recrutador
     titulo: str
     descricao: str
     cidade: str
     uf: str
     palavra_chave: str
     modalidade: Modalidade
-    #data_criacao: date
+    data_criacao: datetime
     status: Status
 
+    recrutador: GetRecrutador
 
     model_config = {"from_attributes": True}
 

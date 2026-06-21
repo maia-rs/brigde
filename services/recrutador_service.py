@@ -10,11 +10,11 @@ class RecrutadorService:
 
     # Criação de Recrutador
     @staticmethod
-    def create_recrutador(data, usuario_id):
+    def create_recrutador(data, user_id):
         """ Cria um novo Recrutador. """
         #1 Verifica se existe o recrutador
 
-        recrutador_existente = db.session.query(Recrutador).filter_by(usuario_id=usuario_id).first()
+        recrutador_existente = db.session.query(Recrutador).filter_by(user_id=user_id).first()
 
         if recrutador_existente:
             # Se encontrou, impede o cadastro disparando a exceção
@@ -23,7 +23,7 @@ class RecrutadorService:
         # 2. Se não encontrou, o fluxo continua normalmente para o cadastro
 
         recrutador = Recrutador(
-            usuario_id=usuario_id,
+            user_id=user_id,
             empresa=data['empresa'],
             
         )
@@ -52,6 +52,8 @@ class RecrutadorService:
         """ Busca todos os recrutadores, trazendo todas as suas infos """
         recrutadores = db.session.query(Recrutador).options(joinedload(Recrutador.usuario)).all()
         return recrutadores
+    
+ 
 
     @staticmethod
     def get_recrutador(nome):

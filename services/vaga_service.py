@@ -1,6 +1,6 @@
 from models.banco import db
-from models.recrutador import Recrutador,Modalidade
-from models.vagas import Vaga, Status
+from models.recrutador import Recrutador
+from models.vagas import Vaga, Status,Modalidade
 from sqlalchemy.orm import joinedload
 
 
@@ -9,7 +9,7 @@ class VagaService:
     """ Serviço para gerenciar operações de vagas. """
     #Criação
     @staticmethod
-    def creat_vaga(data, recrutador_id,data_criacao):
+    def creat_vaga(data, recrutador_id):
         """ Cria uma nova vaga. """
         vaga = Vaga(
             recrutador_id=recrutador_id,
@@ -19,7 +19,7 @@ class VagaService:
             uf=data['uf'],
             palavra_chave=data['palavra_chave'],
             modalidade=data['modalidade'],
-            data_criacao=data_criacao
+            
         )
         db.session.add(vaga)
         db.session.commit()
@@ -98,13 +98,6 @@ class VagaService:
             raise ValueError("Vagas não encontradas")
         return vagas
             
-    def get_vagas_by_data_criacao(data_criacao):
-        """ Busca todas as vagas por uma data de criação específica."""
-        vagas = db.session.query(Vaga).filter_by(data_criacao=data_criacao).all()
-        if not vagas:
-            raise ValueError("Vagas não encontradas")
-        return vagas
-    
     @staticmethod
     def get_vagas_by_periodo(data_inicio, data_fim):
         """ Busca todas as vagas entre duas datas.""" 
