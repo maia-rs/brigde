@@ -10,6 +10,7 @@ from routes.user_routes import user_bp
 from routes.candidato_routes import candidato_bp
 from routes.recrutador_routes import recrutador_bp
 from routes.vagas_routes import vagas_bp
+from routes.candidatura_routes import candidatura_bp
 
 load_dotenv()
 
@@ -28,6 +29,7 @@ app.register_blueprint(user_bp)
 app.register_blueprint(candidato_bp)
 app.register_blueprint(recrutador_bp)
 app.register_blueprint(vagas_bp)
+app.register_blueprint(candidatura_bp)
 
 with app.app_context():
     db.create_all()

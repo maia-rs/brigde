@@ -1,7 +1,9 @@
 from models.candidatura import Status
-from pydantic import BaseModel, Field, Enu
-from datetime import date
+from pydantic import BaseModel, Field
+from datetime import datetime
 from typing import Optional
+from schemas.candidato_schema import GetCandidato
+from schemas.vagas_schema import GetVaga
 
 class CreateCandidatura(BaseModel):
 
@@ -24,14 +26,15 @@ class GetCandidatura(BaseModel):
     """ Define esquema para consulta de candidaturas. """
 
     id: int
-    id_vaga: int
-    id_candidato: int
-    nome_candidato: str # Vem do candidato
-    titulo_vaga: str # Vem da vaga
-    data_criacao: date
+    vaga_id: int
+    candidato_id: int
+    #nome_candidato: str # Vem do candidato
+    #titulo_vaga: str # Vem da vaga
+    data_criacao: datetime
     status: Status
 
-
+    candidato:GetCandidato
+    vaga:GetVaga
 
 
 

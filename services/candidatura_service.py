@@ -1,6 +1,7 @@
 from models.banco import db
 from models.candidato import Candidato
 from models.vagas import Vaga, Status
+from schemas.vagas_schema import GetVaga
 from models.candidatura import Candidatura,Status
 from sqlalchemy.orm import joinedload
 from datetime import datetime
@@ -14,7 +15,7 @@ class CandidaturaService:
     """ Serviço para gerenciar operações de candidaturas. """
     #Criação
     @staticmethod
-    def creat_candidatura(vaga_id, candidato_id):
+    def create_candidatura(vaga_id, candidato_id):
         """ Cria uma nova candidatura. """
 
        # Verifica se candidato já candidatou na vaga
@@ -27,8 +28,14 @@ class CandidaturaService:
 
        # Verifica se a vaga está aberta 
         vaga = db.session.query(Vaga).filter_by(id=vaga_id).first()
+        if not vaga:
+            raise ValueError("vaga não encontrada")
 
-        if vaga == Status.INATIVO:
+        vaga_validada = GetVaga.model_validate(vaga)
+
+        status_vaga = vaga_validada.status
+        
+        if status_vaga == 'FECHADA':
             raise ValueError('Vaga está inativa.')
 
         candidatura = Candidatura(
