@@ -68,12 +68,7 @@ class CandidaturaService:
         candidaturas = db.session.query(Candidatura).filter_by(candidato_id=candidato_id).all()
         return candidaturas
     
-    @staticmethod
-    def get_candidaturas_by_data_criacao(data_criacao):
-        """ Busca todas as candidaturas por uma data de criação específica."""
-        candidaturas = db.session.query(Candidatura).filter_by(data_criacao=data_criacao).all()
-        return candidaturas
-    
+       
     @staticmethod
     def get_candidaturas_by_status(status:Status):
         """ Busca todas as candidaturas por um status específico."""
@@ -91,14 +86,71 @@ class CandidaturaService:
     
     #Atualização    
     @staticmethod
-    def update_candidatura(candidatura_id, status: Status):
+    def update_candidatura_enviada(candidatura_id):
         """ Atualiza os dados de uma vaga existente. """
         candidatura = db.session.get(Candidatura, candidatura_id)   
 
         if not candidatura:
             raise ValueError("Candidatura não encontrada no banco de dados.")
-        if 'status' in status:
-            candidatura.status = status
+        if candidatura.status == Status.ENVIADA:
+            raise ValueError('candidatura já foi enviada')
+        candidatura.status = Status.ENVIADA
+
+        db.session.commit()
+        return candidatura
+    
+    @staticmethod
+    def update_candidatura_analise(candidatura_id):
+        """ Atualiza os dados de uma vaga existente. """
+        candidatura = db.session.get(Candidatura, candidatura_id)   
+
+        if not candidatura:
+            raise ValueError("Candidatura não encontrada no banco de dados.")
+        if candidatura.status == Status.EM_ANALISE:
+            raise ValueError('candidatura já foi está em análise')
+        candidatura.status = Status.EM_ANALISE
+
+        db.session.commit()
+        return candidatura
+    
+    @staticmethod
+    def update_candidatura_entrevista(candidatura_id):
+        """ Atualiza os dados de uma vaga existente. """
+        candidatura = db.session.get(Candidatura, candidatura_id)   
+
+        if not candidatura:
+            raise ValueError("Candidatura não encontrada no banco de dados.")
+        if candidatura.status == Status.ENTREVISTA:
+            raise ValueError('candidatura já foi está na fase de entrevista')
+        candidatura.status = Status.ENTREVISTA
+
+        db.session.commit()
+        return candidatura
+    
+    @staticmethod
+    def update_candidatura_aprovada(candidatura_id):
+        """ Atualiza os dados de uma vaga existente. """
+        candidatura = db.session.get(Candidatura, candidatura_id)   
+
+        if not candidatura:
+            raise ValueError("Candidatura não encontrada no banco de dados.")
+        if candidatura.status == Status.APROVADA:
+            raise ValueError('candidatura já foi está aprovada')
+        candidatura.status = Status.APROVADA
+
+        db.session.commit()
+        return candidatura
+    
+    @staticmethod
+    def update_candidatura_reprovaprovada(candidatura_id):
+        """ Atualiza os dados de uma vaga existente. """
+        candidatura = db.session.get(Candidatura, candidatura_id)   
+
+        if not candidatura:
+            raise ValueError("Candidatura não encontrada no banco de dados.")
+        if candidatura.status == Status.REPROVADA:
+            raise ValueError('candidatura já foi está reprovada')
+        candidatura.status = Status.REPROVADA
 
         db.session.commit()
         return candidatura
