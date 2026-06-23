@@ -72,8 +72,8 @@ class RecrutadorService:
     @staticmethod
     def get_recrutadores_by_empresa(empresa):
         """ Busca todos recrutadores por empresa. """
-        recrutadores = db.session.query(Recrutador).filter_by(empresa=empresa).all()
-        return recrutadores
+        recrutadores = db.session.query(Recrutador).filter_by(empresa=empresa).all() # Retorna lista vazia se não encontrar
+        return recrutadores if recrutadores else []
     
    
     

@@ -7,7 +7,7 @@ from schemas.vagas_schema import GetVaga
 from schemas.candidatura_schema import GetCandidatura
 from datetime import datetime,date
 
-
+# Importar o schema de criação, se houver (CreateCandidatura é vazio, mas é bom ter o import)
 # Carrega classe Blueprint
 candidatura_bp = Blueprint('candidatura', __name__)
 
@@ -20,42 +20,28 @@ def create_candidatura(vaga_id,candidato_id):
     try:
         # Executa as criações e buscas pelos Services
         candidatura = CandidaturaService.create_candidatura(vaga_id,candidato_id)
-        candidatura_formatada = GetCandidatura.model_validate(candidatura).model_dump(mode="json")
-        vaga_dados = candidatura_formatada.get('vaga',{})
-  
+        candidatura_formatada = GetCandidatura.model_validate(candidatura).model_dump(mode='json')
         
-        return jsonify({
-        "message": "Candidatura enviada com sucesso",
-
-        "id_candidatura":candidatura_formatada.get('id'),
-        "status":candidatura_formatada.get('status'),
-        
-        "vaga": {
-                    "id": vaga_dados.get('id'),
-                    "titulo": vaga_dados.get('titulo'),
-                    "status": vaga_dados.get('status')
-
-           
-        }
-    }), 201
+        # Resposta simplificada usando o model_dump completo
+        return jsonify({"message": "Candidatura enviada com sucesso", "candidatura": candidatura_formatada}), 201
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 422
         
     except Exception as e:
         db.session.rollback()
-        print("ERRO REAL NO SERVIDOR:", str(e)) 
+        print("ERRO REAL NO SERVIDOR:", str(e))
         return jsonify({"error": "Erro interno no servidor."}), 500
     
 
 #Rota para consultar candidatura por ID
 
 @candidatura_bp.route('/candidatura/<int:candidatura_id>', methods=['GET'])
-#@jwt_required()
-def get_candidatura_by_id(candidatura_id):
+#@jwt_required() # Manter comentado se não for para usar JWT
+def get_candidatura_by_id_route(candidatura_id): # Renomeado para refletir a busca por candidatura_id
     try:
         # Chama o Service para buscar a candidatura
-        candidatura = CandidaturaService.get_candidatura_by_id(candidatura_id)
+        candidatura = CandidaturaService.get_candidatura_by_id(candidatura_id) # O service já busca por candidatura_id
 
         # Se o Service retornar None 
         if not candidatura:
@@ -66,12 +52,8 @@ def get_candidatura_by_id(candidatura_id):
 
        
         
-        return jsonify({
-        "message": "Candidatura encontrada com sucesso",
-        "candidatura": {
-          "candidatura":candidatura_formatada
-        }
-    }), 200
+        # Resposta simplificada
+        return jsonify({"message": "Candidatura encontrada com sucesso", "candidatura": candidatura_formatada}), 200
 
     except ValueError as e:
         # Captura erros 
@@ -80,7 +62,7 @@ def get_candidatura_by_id(candidatura_id):
     except Exception as e:
         # Erro inesperado no servidor
         db.session.rollback()
-        print ("ERRO:", str(e)) 
+        print("ERRO:", str(e))
         return jsonify({"error": "Erro interno no servidor."}), 
 
 
@@ -104,12 +86,8 @@ def get_candidatura_by_candidato_id(candidato_id):
 
        
         
-        return jsonify({
-        "message": "Candidatura encontrada com sucesso",
-        "candidatura": {
-            "candidatura":candidatura_formatada
-        }
-    }), 200
+        # Resposta simplificada
+        return jsonify({"message": "Candidatura encontrada com sucesso", "candidaturas": candidatura_formatada}), 200
 
     except ValueError as e:
         # Captura erros 
@@ -118,7 +96,7 @@ def get_candidatura_by_candidato_id(candidato_id):
     except Exception as e:
         # Erro inesperado no servidor
         db.session.rollback()
-        print ("ERRO:", str(e)) 
+        print("ERRO:", str(e))
         return jsonify({"error": "Erro interno no servidor."}), 500
     
 
@@ -134,8 +112,8 @@ def get_candidatura_by_periodo():
         data_inicio_texto = request.args.get('data_inicio')
         data_fim_texto = request.args.get('data_fim')
 
-        if not data_fim_texto and data_inicio_texto:
-            return jsonify({"error": "É necessário informar o parâmetro 'data_inicio e data_fim)' na URL."}), 400
+        if not data_inicio_texto or not data_fim_texto: # Condição corrigida
+            return jsonify({"error": "É necessário informar os parâmetros 'data_inicio' e 'data_fim' na URL."}), 400
         
 
         try:
@@ -147,7 +125,7 @@ def get_candidatura_by_periodo():
             candidaturas_banco = CandidaturaService.get_candidaturas_by_periodo(data_inicio_convertida,data_fim_convertida)
 
             if not candidaturas_banco:
-                return jsonify({"message": "Nenhuma vaga encontrada para esta periodo.", "vagas": []}), 200
+                return jsonify({"message": "Nenhuma candidatura encontrada para este período.", "candidaturas": []}), 200
 
             # 4. Formata a lista usando o Pydantic
             candidaturas_formatada = [GetCandidatura.model_validate(c).model_dump(mode='json') for c in candidaturas_banco]
@@ -165,7 +143,7 @@ def get_candidatura_by_periodo():
 
         except Exception as e:
             db.session.rollback()
-            print("ERRO INTERNO:", str(e)) 
+            print("ERRO INTERNO:", str(e))
             return jsonify({"error": "Erro interno no servidor."}),500
 
 
@@ -186,14 +164,14 @@ def get_candidatura_status():
         candidaturas_banco= CandidaturaService.get_candidaturas_by_status(status)
 
         if not candidaturas_banco:
-            return jsonify({"message": "Nenhuma vaga cadastrada.", "vaga": []}), 200
+            return jsonify({"message": "Nenhuma candidatura encontrada para este status.", "candidaturas": []}), 200
 
     
         candidatura_formatada = [GetCandidatura.model_validate(u).model_dump(mode='json') for u in candidaturas_banco]
         # Retorno 
         return jsonify({
-            "message": "Vagas encontradas com sucesso",
-            "vagas": candidatura_formatada
+            "message": "Candidaturas encontradas com sucesso",
+            "candidaturas": candidatura_formatada
         }), 200
     
     except ValueError as e:
@@ -203,7 +181,7 @@ def get_candidatura_status():
 
     except Exception as e:
         db.session.rollback()
-        print("ERRO:", str(e)) 
+        print("ERRO:", str(e))
         return jsonify({"error": "Erro interno no servidor."}), 500
 
 #Atualização
@@ -234,7 +212,7 @@ def envia_candidatura(candidatura_id):
     except Exception as e:
         # Erro inesperado do banco ou servidor
         db.session.rollback()
-        print = ("ERRO:", str(e)) 
+        print("ERRO:", str(e))
         return jsonify({"error": "Erro interno no servidor."}), 500
 
 
@@ -263,8 +241,8 @@ def em_analise_candidatura(candidatura_id):
 
     except Exception as e:
         # Erro inesperado do banco ou servidor
-        db.session.rollback()
-        print = ("ERRO:", str(e))
+        db.session.rollback() # Corrigido o print
+        print("ERRO:", str(e))
         return jsonify({"error": "Erro interno no servidor."}), 500
 
 
@@ -293,8 +271,8 @@ def entrevista_candidatura(candidatura_id):
 
     except Exception as e:
         # Erro inesperado do banco ou servidor
-        db.session.rollback()
-        print = ("ERRO:", str(e))
+        db.session.rollback() # Corrigido o print
+        print("ERRO:", str(e))
         return jsonify({"error": "Erro interno no servidor."}), 500
 
 
@@ -323,8 +301,8 @@ def aprovada_candidatura(candidatura_id):
 
     except Exception as e:
         # Erro inesperado do banco ou servidor
-        db.session.rollback()
-        print = ("ERRO:", str(e))
+        db.session.rollback() # Corrigido o print
+        print("ERRO:", str(e))
         return jsonify({"error": "Erro interno no servidor."}), 500
 
 
@@ -341,6 +319,6 @@ def reprovada_candidatura(candidatura_id):
         return jsonify({"error": str(e)}), 422
     except Exception as e:
         db.session.rollback()
-        print = ("ERRO:", str(e))
+        print("ERRO:", str(e))
         return jsonify({"error": "Erro interno no servidor."}), 500
        

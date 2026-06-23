@@ -4,6 +4,7 @@ from models.banco import db
 from services.candidato_service import *
 from schemas.user_schema import GetUser
 from schemas.candidato_schema import GetCandidato
+from schemas.candidato_schema import CreateCandidato, UpdateCandidato # Importar schemas de criação e atualização
 from services.user_service import *
 from datetime import datetime
 
@@ -16,42 +17,18 @@ candidato_bp = Blueprint('candidato', __name__)
 @candidato_bp.route('/candidato/<int:user_id>', methods=['POST'])
 # @jwt_required()
 def create_candidato_perfil(user_id):
-    data = request.get_json() or {}
-    
-    
-
-    cidade = data.get('cidade')
-    uf = data.get('uf')
-    telefone = data.get('telefone')
-    palavra_chave = data.get('palavra_chave')
-    profissao = data.get('profissao')
-    data_nascimento = data.get('data_nascimento')
-
-    # Valida se todos os campos obrigatórios foram enviados no JSON
-    if not all([cidade, uf, telefone, palavra_chave, profissao, data_nascimento]):
-        return jsonify({"error": "Necessário informar todos os dados requeridos."}), 400
-    
     try:
+        # 1. Validação de entrada com Pydantic
+        candidato_data = CreateCandidato.model_validate(request.get_json())
+        
         # Executa as criações e buscas pelos Services
-        candidato = CandidatoService.create_candidato(data,user_id)
-        usuario = UsuarioService.get_usuario_by_id(user_id)
+        candidato = CandidatoService.create_candidato(candidato_data.model_dump(), user_id)
         
-        # Formata o usuário usando seu schema do Pydantic para evitar erro de JSON com o Status
-        usuario_formatado = GetUser.model_validate(usuario).model_dump(mode='json')
+        # Formata o candidato usando seu schema do Pydantic
+        candidato_formatado = GetCandidato.model_validate(candidato).model_dump(mode='json')
         
-        return jsonify({
-            "message": "Candidato criado com sucesso",
-            "candidato": {
-                "usuario": usuario_formatado,
-                "candidato_id": candidato.id,
-                "cidade": candidato.cidade,
-                "uf": candidato.uf,
-                "telefone": candidato.telefone,
-                "palavra_chave": candidato.palavra_chave,
-                "profissao": candidato.profissao,
-                "data_nascimento": str(candidato.data_nascimento) # Convertido para string para o JSON não quebrar
-            }
-        }), 201
+        # Resposta simplificada
+        return jsonify({"message": "Candidato criado com sucesso", "candidato": candidato_formatado}), 201
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 422
@@ -151,7 +128,7 @@ def get_candidato_nome():
         # Retorno 
         return jsonify({
             "message": "Candidatos encontrados com sucesso",
-            "candidatos": candidato_formatado
+            "candidato": candidato_formatado # Chave corrigida para um único candidato
         }), 200
 
     except ValueError as e:
@@ -393,26 +370,12 @@ def get_candidato_data_nascimento():
 @candidato_bp.route('/candidato/<int:candidato_id>', methods=['PUT'])
 #@jwt_required()
 def update_candidato(candidato_id):
-           
-    data = request.get_json() or {}    
-
-    cidade = data.get('cidade')
-    uf = data.get('uf')
-    telefone = data.get('telefone')
-    palavra_chave = data.get('palavra_chave')
-    profissao = data.get('profissao')
-    data_nascimento = data.get('data_nascimento')
-
-
-
-    if not any([cidade, uf, telefone, palavra_chave, profissao, data_nascimento]):
-        return jsonify({"error": "Necessário informar dados a serem atualizados"}), 400
-    
-
     try:
-
+        # 1. Validação de entrada com Pydantic
+        candidato_data = UpdateCandidato.model_validate(request.get_json())
+        
         # Chama o Service para atualizar o candidato
-        candidato = CandidatoService.update_candidato(candidato_id,data)
+        candidato = CandidatoService.update_candidato(candidato_id, candidato_data.model_dump(exclude_unset=True))
 
         # Se o Service retornar None 
         if not candidato:
@@ -433,5 +396,5 @@ def update_candidato(candidato_id):
     except Exception as e:
         # Erro inesperado do banco ou servidor
         db.session.rollback()
-        erro = ("ERRO:", str(e)) 
-        return jsonify({"error": "Erro interno no servidor."},f'{erro}'), 500
+        print("ERRO:", str(e)) # Corrigido o print
+        return jsonify({"error": "Erro interno no servidor.", "details": str(e)}), 500

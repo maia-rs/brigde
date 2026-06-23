@@ -42,7 +42,7 @@ class Candidatura(db.Model):
     vaga = db.relationship('Vaga', backref=db.backref('candidaturas')) # usa relationship e backref para facilitar nas querys dispensa fazer consultas complexas (JOINs) 
     candidato_id = db.Column(db.Integer, db.ForeignKey('candidato.id'), nullable=False)
     candidato = db.relationship('Candidato', backref=db.backref('candidaturas')) # usa relationship e backref para facilitar nas querys dispensa fazer consultas complexas (JOINs) manualmente
-    data_criacao = db.Column(db.DateTime, nullable=False, default=datetime.now())
+    data_criacao = db.Column(db.DateTime, nullable=False, default=datetime.now) # Corrigido para datetime.now (sem parênteses)
     status = db.Column(db.Enum(Status), nullable=False, default=Status.ENVIADA)
 
 

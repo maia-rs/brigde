@@ -48,17 +48,8 @@ class Login(BaseModel):
     """ Define esquema para login de usuários. Sendo possível fazer login com e-mail. """
 
     #nome: Optional[str] = None
-    email: str = None
-    senha: str
+    email: EmailStr = Field(..., description="Endereço de e-mail do usuário")
+    senha: str = Field(..., min_length=6, description="Senha do usuário")
 
 
     model_config = {"from_attributes": True}
-
-    @model_validator(mode='after')
-    def verificar_email(self):
-
-        """ Valida se o e-mail foi fornecido para o login. """
-
-        if not self.email:
-            raise ValueError ('Forneça o email')
-        return self

@@ -134,13 +134,13 @@ class VagaService:
     def listar_vagas_ativas():
         """ Busca todas as vagas ativas. """
         vagas = db.session.query(Vaga).filter_by(status=Status.ATIVO).all()
-        return vagas
+        return vagas if vagas else [] # Retorna lista vazia se não encontrar
     
     @staticmethod
     def listar_vagas_inativas():
         """ Busca todas as vagas inativas. """
         vagas = db.session.query(Vaga).filter_by(status=Status.INATIVO).all()
-        return vagas
+        return vagas if vagas else [] # Retorna lista vazia se não encontrar
 
     #Atualização
     @staticmethod

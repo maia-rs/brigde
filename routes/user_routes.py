@@ -3,6 +3,8 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from models.banco import db
 from services.user_service import *
 from schemas.user_schema import GetUser
+from schemas.user_schema import CreateUser,UpdateUser # Importar o schema de criação
+from schemas.user_schema import Login # Importar o schema de Login
 
 
 
@@ -14,25 +16,16 @@ user_bp = Blueprint('usuario', __name__)
 @user_bp.route('/usuario', methods=['POST'])
 #@jwt_required()
 def create_user():
-    data = request.get_json() or {}
-    nome = data.get('nome')
-    email = data.get('email')
-    senha = data.get('senha')
-
-    if not all([nome, email, senha]):
-        return jsonify({"error": "Necessário informar nome,email e senha"}), 400
-    
     try:
-
-        novo_usuario = UsuarioService.create_usuario(data)
-
-        return jsonify(
-            {"message":"usuário criado com suscesso",
-             "user": {
-                 "id": novo_usuario.id,
-                 "nome": novo_usuario.nome,
-                 "email": novo_usuario.email,
-                 }}),201
+        # 1. Validação de entrada com Pydantic
+        user_data = CreateUser.model_validate(request.get_json())
+        
+        # Executa as criações e buscas pelos Services
+        novo_usuario = UsuarioService.create_usuario(user_data.model_dump()) # Passa o dicionário validado
+        
+        # 2. Resposta simplificada usando o GetUser schema
+        usuario_formatado = GetUser.model_validate(novo_usuario).model_dump(mode='json')
+        return jsonify({"message": "Usuário criado com sucesso", "user": usuario_formatado}), 201
 
     
     except ValueError as e:
@@ -53,17 +46,11 @@ def create_user():
 @user_bp.route('/login', methods=['POST'])
 def login():
            
-    email_entrada= request.get_json() or {}
-    senha_entrada= request.get_json() or {}
-    email = email_entrada.get('email')
-    senha = senha_entrada.get('senha')
-
-
-    if not all([email,senha]):
-        return jsonify({"error": "Necessário informar e-mail e senha"}), 400
-    
-
     try:
+        # 1. Validação de entrada com Pydantic
+        login_data = Login.model_validate(request.get_json())
+        email = login_data.email
+        senha = login_data.senha
 
         # Chama o Service para logar o usuário
         usuario = UsuarioService.verify_login(email,senha)
@@ -91,8 +78,8 @@ def login():
     except Exception as e:
         # Erro inesperado do banco ou servidor
         db.session.rollback()
-        erro = ("ERRO:", str(e)) 
-        return jsonify({"error": "Erro interno no servidor."},f'{erro}'), 500
+        print("ERRO:", str(e)) # Corrigido o print
+        return jsonify({"error": "Erro interno no servidor.", "details": str(e)}), 500
 
 
 #Rota para consultar usuário por ID
@@ -150,7 +137,7 @@ def get_users():
 
     except Exception as e:
         db.session.rollback()
-        print ("ERRO:", str(e)) 
+        print("ERRO:", str(e))
         return jsonify({"error": "Erro interno no servidor."}), 
 
  #Listas todos os usuários ATIVOS do banco
@@ -174,7 +161,7 @@ def get_users_ativos():
 
     except Exception as e:
         db.session.rollback()
-        print("ERRO:", str(e)) 
+        print("ERRO:", str(e))
         return jsonify({"error": "Erro interno no servidor."}), 500
     
  #Listas todos os usuários Inativos do banco
@@ -199,7 +186,7 @@ def get_users_inativos():
 
     except Exception as e:
         db.session.rollback()
-        print("ERRO:", str(e)) 
+        print("ERRO:", str(e))
         return jsonify({"error": "Erro interno no servidor."}), 500
     
 
@@ -207,21 +194,12 @@ def get_users_inativos():
 @user_bp.route('/usuario/<int:user_id>', methods=['PUT'])
 @jwt_required()
 def update_users(user_id):
-           
-    data = request.get_json() or {}
-    nome = data.get('nome')
-    email = data.get('email')
-    senha = data.get('senha')
-
-
-    if not any([nome, email, senha]):
-        return jsonify({"error": "Necessário informar dados a serem atualizados"}), 400
-    
-
     try:
+        # 1. Validação de entrada com Pydantic
+        user_data = UpdateUser.model_validate(request.get_json())
 
         # Chama o Service para atualizar o usuário
-        usuario = UsuarioService.update_usuario(user_id,data)
+        usuario = UsuarioService.update_usuario(user_id, user_data.model_dump(exclude_unset=True)) # Passa o dicionário validado
 
         # Se o Service retornar None (usuário não encontrado)
         if not usuario:
@@ -243,5 +221,5 @@ def update_users(user_id):
     except Exception as e:
         # Erro inesperado do banco ou servidor
         db.session.rollback()
-        erro = ("ERRO:", str(e)) 
-        return jsonify({"error": "Erro interno no servidor."},f'{erro}'), 500
+        print("ERRO:", str(e)) # Corrigido o print
+        return jsonify({"error": "Erro interno no servidor.", "details": str(e)}), 500

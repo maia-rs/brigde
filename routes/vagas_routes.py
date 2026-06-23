@@ -4,6 +4,7 @@ from models.banco import db
 from services.vaga_service import *
 from schemas.recrutador_schema import GetRecrutador
 from schemas.vagas_schema import GetVaga
+from schemas.vagas_schema import CreateVaga # Importar o schema de criação
 from services.recrutador_service import *
 from datetime import datetime,date
 
@@ -15,45 +16,20 @@ vagas_bp = Blueprint('vagas', __name__)
 @vagas_bp.route('/vaga/<int:recrutador_id>', methods=['POST'])
 # @jwt_required()
 def create_vaga(recrutador_id):
-    data = request.get_json() or {}
-
-    titulo = data.get('titulo')
-    descricao = data.get('descricao')
-    cidade = data.get('cidade')
-    uf = data.get('uf')
-    palavra_chave = data.get('palavra_chave')
-    modalidade = data.get('modalidade')
-    
-    # Valida se todos os campos obrigatórios foram enviados no JSON
-    if not all([titulo,descricao,cidade, uf, palavra_chave,modalidade]):
-        return jsonify({"error": "Necessário informar todos os dados requeridos."}), 400
-    
-
     try:
+        # 1. Validação de entrada com Pydantic
+        vaga_data = CreateVaga.model_validate(request.get_json())
+        
         # Executa as criações e buscas pelos Services
-        vaga = VagaService.creat_vaga(data,recrutador_id)
+        vaga = VagaService.create_vaga(vaga_data.model_dump(), recrutador_id) # Corrigido o nome da função
         vaga_formatada = GetVaga.model_validate(vaga).model_dump(mode='json')
 
-        recrutador_dados = vaga_formatada.get('recrutador', {})
-        
-        return jsonify({
-        "message": "Vaga criada com sucesso",
-        "vaga": {
-            "id": vaga_formatada.get('id'),
-            "titulo": vaga_formatada.get('titulo'),
-            "descricao": vaga_formatada.get('descricao'),
-            "cidade": vaga_formatada.get('cidade'),
-            "uf": vaga_formatada.get('uf'),
-            "palavra_chave": vaga_formatada.get('palavra_chave'),
-            "modalidade": vaga_formatada.get('modalidade'),
-            "status": vaga_formatada.get('status'),
-            "data_criacao": vaga_formatada.get('data_criacao')
-        },
-        "recrutador": {
-            "empresa": recrutador_dados.get('empresa'),
-            "nome": recrutador_dados.get('usuario', {}).get('nome'),
+        # 2. Resposta simplificada usando o model_dump completo
+        response_data = {
+            "message": "Vaga criada com sucesso",
+            "vaga": vaga_formatada
         }
-    }), 201
+        return jsonify(response_data), 201
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 422
@@ -80,26 +56,12 @@ def get_vaga_by_id(vaga_id):
         # O Pydantic valida a vaga única e converte o Enum para String com mode='json'
         vaga_formatada = GetVaga.model_validate(vaga).model_dump(mode='json')
 
-        recrutador_dados = vaga_formatada.get('recrutador', {})
-        
-        return jsonify({
-        "message": "Vaga criada com sucesso",
-        "vaga": {
-            "id": vaga_formatada.get('id'),
-            "titulo": vaga_formatada.get('titulo'),
-            "descricao": vaga_formatada.get('descricao'),
-            "cidade": vaga_formatada.get('cidade'),
-            "uf": vaga_formatada.get('uf'),
-            "palavra_chave": vaga_formatada.get('palavra_chave'),
-            "modalidade": vaga_formatada.get('modalidade'),
-            "status": vaga_formatada.get('status'),
-            "data_criacao": vaga_formatada.get('data_criacao')
-        },
-        "recrutador": {
-            "empresa": recrutador_dados.get('empresa'),
-            "nome": recrutador_dados.get('usuario', {}).get('nome'),
+        # Resposta simplificada usando o model_dump completo
+        response_data = {
+            "message": "Vaga encontrada com sucesso", # Mensagem mais apropriada
+            "vaga": vaga_formatada
         }
-    }), 200
+        return jsonify(response_data), 200
 
     except ValueError as e:
         # Captura erros 
@@ -128,7 +90,7 @@ def get_vagas():
         # 3. Retorno 
         return jsonify({
             "message": "Vagas encontradas com sucesso",
-            "candidatos": lista_vagas
+            "vagas": lista_vagas
         }), 200
     
     except ValueError as e:
@@ -491,7 +453,7 @@ def get_vagas_abertas():
         vagas_banco= VagaService.listar_vagas_ativas()
 
         if not vagas_banco:
-            return jsonify({"message": "Nenhuma vaga cadastrada.", "vaga": []}), 200
+            return jsonify({"message": "Nenhuma vaga aberta encontrada.", "vagas": []}), 200 # Mensagem mais específica
 
     
         vagas_formatada = [GetVaga.model_validate(u).model_dump(mode='json') for u in vagas_banco]
@@ -523,7 +485,7 @@ def get_vagas_fechadas():
         vagas_banco= VagaService.listar_vagas_inativas()
 
         if not vagas_banco:
-            return jsonify({"message": "Nenhuma vaga cadastrada.", "vaga": []}), 200
+            return jsonify({"message": "Nenhuma vaga fechada encontrada.", "vagas": []}), 200 # Mensagem mais específica
 
     
         vagas_formatada = [GetVaga.model_validate(u).model_dump(mode='json') for u in vagas_banco]
@@ -549,46 +511,20 @@ def get_vagas_fechadas():
 @vagas_bp.route('/vaga/<int:vaga_id>', methods=['PUT'])
 #@jwt_required()
 def update_vaga(vaga_id):
-           
-    data = request.get_json() or {}
-    
-    titulo = data.get('titulo')
-    descricao = data.get('descricao')
-    cidade = data.get('cidade')
-    uf = data.get('uf')
-    palavra_chave = data.get('palavra_chave')
-    modalidade = data.get('modalidade')
-    
-  
-    if not any([titulo,descricao,cidade, uf, palavra_chave,modalidade]):
-        return jsonify({"error": "Necessário informar todos os dados requeridos."}), 400
-    
-
     try:
+        # 1. Validação de entrada com Pydantic
+        vaga_data = UpdateVaga.model_validate(request.get_json())
+        
         # Executa as criações e buscas pelos Services
-        vaga = VagaService.update_vaga(vaga_id,data)
+        vaga = VagaService.update_vaga(vaga_id, vaga_data.model_dump(exclude_unset=True)) # Passa o dicionário validado
         vaga_formatada = GetVaga.model_validate(vaga).model_dump(mode='json')
 
-        recrutador_dados = vaga_formatada.get('recrutador', {})
-        
-        return jsonify({
-        "message": "Vaga atualizada com sucesso",
-        "vaga": {
-            "id": vaga_formatada.get('id'),
-            "titulo": vaga_formatada.get('titulo'),
-            "descricao": vaga_formatada.get('descricao'),
-            "cidade": vaga_formatada.get('cidade'),
-            "uf": vaga_formatada.get('uf'),
-            "palavra_chave": vaga_formatada.get('palavra_chave'),
-            "modalidade": vaga_formatada.get('modalidade'),
-            "status": vaga_formatada.get('status'),
-            "data_criacao": vaga_formatada.get('data_criacao')
-        },
-        "recrutador": {
-            "empresa": recrutador_dados.get('empresa'),
-            "nome": recrutador_dados.get('usuario', {}).get('nome'),
+        # 2. Resposta simplificada usando o model_dump completo
+        response_data = {
+            "message": "Vaga atualizada com sucesso",
+            "vaga": vaga_formatada
         }
-    }), 200
+        return jsonify(response_data), 200
 
         
     
@@ -615,26 +551,11 @@ def desativa_vaga(vaga_id):
         vaga = VagaService.desativar_vaga(vaga_id)
         vaga_formatada = GetVaga.model_validate(vaga).model_dump(mode='json')
 
-        recrutador_dados = vaga_formatada.get('recrutador', {})
-        
-        return jsonify({
-        "message": "Vaga atualizada com sucesso",
-        "vaga": {
-            "id": vaga_formatada.get('id'),
-            "titulo": vaga_formatada.get('titulo'),
-            "descricao": vaga_formatada.get('descricao'),
-            "cidade": vaga_formatada.get('cidade'),
-            "uf": vaga_formatada.get('uf'),
-            "palavra_chave": vaga_formatada.get('palavra_chave'),
-            "modalidade": vaga_formatada.get('modalidade'),
-            "status": vaga_formatada.get('status'),
-            "data_criacao": vaga_formatada.get('data_criacao')
-        },
-        "recrutador": {
-            "empresa": recrutador_dados.get('empresa'),
-            "nome": recrutador_dados.get('usuario', {}).get('nome'),
+        response_data = {
+            "message": "Vaga desativada com sucesso", # Mensagem mais específica
+            "vaga": vaga_formatada
         }
-    }), 200
+        return jsonify(response_data), 200
 
         
     
@@ -658,26 +579,11 @@ def ativa_vaga(vaga_id):
         vaga = VagaService.ativar_vaga(vaga_id)
         vaga_formatada = GetVaga.model_validate(vaga).model_dump(mode='json')
 
-        recrutador_dados = vaga_formatada.get('recrutador', {})
-        
-        return jsonify({
-        "message": "Vaga atualizada com sucesso",
-        "vaga": {
-            "id": vaga_formatada.get('id'),
-            "titulo": vaga_formatada.get('titulo'),
-            "descricao": vaga_formatada.get('descricao'),
-            "cidade": vaga_formatada.get('cidade'),
-            "uf": vaga_formatada.get('uf'),
-            "palavra_chave": vaga_formatada.get('palavra_chave'),
-            "modalidade": vaga_formatada.get('modalidade'),
-            "status": vaga_formatada.get('status'),
-            "data_criacao": vaga_formatada.get('data_criacao')
-        },
-        "recrutador": {
-            "empresa": recrutador_dados.get('empresa'),
-            "nome": recrutador_dados.get('usuario', {}).get('nome'),
+        response_data = {
+            "message": "Vaga ativada com sucesso", # Mensagem mais específica
+            "vaga": vaga_formatada
         }
-    }), 200
+        return jsonify(response_data), 200
 
         
     
