@@ -2,6 +2,7 @@ import os
 from flask import Flask, jsonify, request
 from flask_jwt_extended import JWTManager, create_access_token
 from werkzeug.security import check_password_hash
+from flask_cors import CORS
 from dotenv import load_dotenv
 from pydantic import ValidationError
 from models.banco import db
@@ -15,6 +16,7 @@ from routes.candidatura_routes import candidatura_bp
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 # Alternativa para versões mais recentes do Flask
 app.json.ensure_ascii = False
 

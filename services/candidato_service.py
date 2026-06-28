@@ -24,11 +24,7 @@ class CandidatoService:
             # Se encontrou, impede o cadastro disparando a exceção
             raise ValueError("Este usuário já possui um candidato cadastrado.")
         
-        data_nascimento_texto = data.get('data_nascimento')
-        try:
-            data_nascimento_objeto = datetime.strptime(data_nascimento_texto, "%Y-%m-%d").date()
-        except (ValueError, TypeError):
-            raise ValueError("Formato de data inválido. Use o padrão AAAA-MM-DD.")
+        data_nascimento_objeto = data.get('data_nascimento') # Já é um objeto date
         
         #2 Se não continua
         candidato = Candidato(
@@ -42,7 +38,12 @@ class CandidatoService:
         )
         db.session.add(candidato)
         db.session.commit()
+
+        
+
         return candidato
+
+        
     
     # Buscas
     @staticmethod

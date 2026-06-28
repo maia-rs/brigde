@@ -9,7 +9,7 @@ class VagaService:
     """ Serviço para gerenciar operações de vagas. """
     #Criação
     @staticmethod
-    def creat_vaga(data, recrutador_id):
+    def create_vaga(data, recrutador_id):
         """ Cria uma nova vaga. """
         vaga = Vaga(
             recrutador_id=recrutador_id,

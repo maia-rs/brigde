@@ -2,11 +2,11 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from models.banco import db
 from services.vaga_service import *
-from schemas.recrutador_schema import GetRecrutador
-from schemas.vagas_schema import GetVaga
-from schemas.vagas_schema import CreateVaga # Importar o schema de criação
+from schemas.vagas_schema import CreateVaga,GetVaga,UpdateVaga# Importar o schema de criação
 from services.recrutador_service import *
 from datetime import datetime,date
+from inteligencia.embeddings_service import Embenddings
+
 
 
 # Carrega classe Blueprint
@@ -22,6 +22,8 @@ def create_vaga(recrutador_id):
         
         # Executa as criações e buscas pelos Services
         vaga = VagaService.create_vaga(vaga_data.model_dump(), recrutador_id) # Corrigido o nome da função
+        #Cria embeddings da vaga
+        Embenddings.criar_embeddings_vagas(vaga.id)
         vaga_formatada = GetVaga.model_validate(vaga).model_dump(mode='json')
 
         # 2. Resposta simplificada usando o model_dump completo
@@ -549,6 +551,7 @@ def desativa_vaga(vaga_id):
     try:
         # Executa as criações e buscas pelos Services
         vaga = VagaService.desativar_vaga(vaga_id)
+        
         vaga_formatada = GetVaga.model_validate(vaga).model_dump(mode='json')
 
         response_data = {

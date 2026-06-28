@@ -3,10 +3,11 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from models.banco import db
 from services.candidato_service import *
 from schemas.user_schema import GetUser
-from schemas.candidato_schema import GetCandidato
-from schemas.candidato_schema import CreateCandidato, UpdateCandidato # Importar schemas de criação e atualização
+from schemas.candidato_schema import CreateCandidato, UpdateCandidato,GetCandidato# Importar schemas de criação e atualização
 from services.user_service import *
 from datetime import datetime
+from inteligencia.embeddings_service import Embenddings
+
 
 
 
@@ -21,8 +22,17 @@ def create_candidato_perfil(user_id):
         # 1. Validação de entrada com Pydantic
         candidato_data = CreateCandidato.model_validate(request.get_json())
         
+        # Converte o modelo Pydantic para um dicionário para o serviço.
+        # Por padrão, model_dump() converteria objetos datetime.date de volta para strings.
+        # Para garantir que o serviço receba um objeto date (se ele esperar isso),
+        # sobrescrevemos o campo data_nascimento com o objeto date já validado pelo Pydantic.
+        candidato_dict = candidato_data.model_dump()
+        candidato_dict['data_nascimento'] = candidato_data.data_nascimento
+        
         # Executa as criações e buscas pelos Services
-        candidato = CandidatoService.create_candidato(candidato_data.model_dump(), user_id)
+        candidato = CandidatoService.create_candidato(candidato_dict, user_id)
+        #Criar Embeddings candidatos
+        Embenddings.criar_embeddings_candidato(candidato.id)
         
         # Formata o candidato usando seu schema do Pydantic
         candidato_formatado = GetCandidato.model_validate(candidato).model_dump(mode='json')
